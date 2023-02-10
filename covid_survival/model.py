@@ -66,7 +66,7 @@ def create_model(in_features, labtrans, num_nodes=None, batch_norm=False, dropou
 
 def train(model: CoxVacc, x_train, y_train, x_time_var_train=None, batch_size=2048, epochs=5, verbose=True,
           x_val=None, y_val=None, x_time_var_val=None, val_batch_size=2048, shuffle=True, n_control=100,
-          checkpoint_name=None):
+          checkpoint_name=None, checkpoint_freq=100):
 
     val = x_val, y_val
 
@@ -76,14 +76,16 @@ def train(model: CoxVacc, x_train, y_train, x_time_var_train=None, batch_size=20
             
     if checkpoint_name is not None:
         class Checkpoint(Callback):
-            def __init__(self):
+            def __init__(self, c_freq=100):
                 super().__init__()
                 self.i = 0
+                self.checkpoint_freq = checkpoint_freq
+
             def  on_epoch_end(self):
-                if self.i % 100 == 0:
+                if self.i % self.checkpoint_freq == 0:
                     self.model.save_net(f"{checkpoint_name}_{self.i}.pt")
                 self.i += 1
-        callbacks = [Checkpoint(), Flush()]
+        callbacks = [Checkpoint(checkpoint_freq), Flush()]
     else: 
         callbacks = [Flush()]
         
